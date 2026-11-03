@@ -2,7 +2,7 @@
 
 import { scoreLabel } from "@/lib/score";
 import type { Evidence, RedFlag, Verdict } from "@/lib/types";
-import type { CheckView, ClaimView } from "@/lib/view";
+import { scoreRingState, type CheckView, type ClaimView } from "@/lib/view";
 
 const FLAG_LABEL: Record<RedFlag["code"], string> = {
   clickbait: "Clickbait",
@@ -80,6 +80,7 @@ export function ResultPanel({
 }) {
   const showResults = view.claims.length > 0 || view.error || view.phase === "running";
   if (!showResults) return null;
+  const ring = scoreRingState(view);
   const score = view.score;
 
   return (
@@ -92,7 +93,17 @@ export function ResultPanel({
           <p className="status">{view.status || "Working…"}</p>
           {view.language ? <p className="language">Answering in {view.language}</p> : null}
         </div>
-        {typeof score === "number" ? (
+        {ring === "pending" ? (
+          <div className="score-block">
+            <div className="dial dial-pending" role="img" aria-label="Checking credibility">
+              <div>
+                <strong>…</strong>
+              </div>
+            </div>
+            <p className="score-pending">Checking…</p>
+          </div>
+        ) : null}
+        {ring === "final" && typeof score === "number" ? (
           <div className="score-block">
             <div
               className={`dial dial-${band(score)}`}
@@ -108,7 +119,9 @@ export function ResultPanel({
           </div>
         ) : null}
       </div>
-      {typeof score === "number" ? <p className="score-note">0 is the weakest score. 100 is the strongest.</p> : null}
+      {ring === "final" && typeof score === "number" ? (
+        <p className="score-note">0 is the weakest score. 100 is the strongest.</p>
+      ) : null}
 
       {view.redFlags.length > 0 ? (
         <ul className="flags">

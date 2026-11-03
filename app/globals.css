@@ -320,8 +320,22 @@ textarea { resize: vertical; min-height: 150px; }
 .dial-high { background: conic-gradient(var(--supported) var(--p), #efe6d4 0); }
 .dial-mid { background: conic-gradient(var(--misleading) var(--p), #efe6d4 0); }
 .dial-low { background: conic-gradient(#b86e00 var(--p), #efe6d4 0); }
+.dial-pending {
+  background: var(--chip);
+  position: relative;
+}
+.dial-pending::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(var(--muted) 0 28%, transparent 0);
+  animation: dial-spin 0.9s linear infinite;
+}
+.dial-pending > div { position: relative; z-index: 1; }
 .score-block { text-align: center; }
 .score-block p { margin: 6px 0 0; font-size: 13px; font-weight: 700; }
+.score-pending { color: var(--muted); }
 .dial > div {
   width: 84px;
   height: 84px;
@@ -450,7 +464,12 @@ textarea { resize: vertical; min-height: 150px; }
   .actions .primary, .actions .ghost { width: 100%; }
 }
 
+@keyframes dial-spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .stamp-idle { transform: none; }
+  .dial-pending::before { animation: none; }
 }
