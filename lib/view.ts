@@ -1,4 +1,3 @@
-import { credibilityScore } from "./score";
 import type { CheckResult, Evidence, RedFlag, StreamEvent, Verdict } from "./types";
 
 export type ClaimPhase = "queued" | "searching" | "judging" | "done";
@@ -39,11 +38,13 @@ export const emptyView: CheckView = {
   preview: false,
 };
 
-function liveScore(claims: ClaimView[], redFlags: RedFlag[], explicit?: number | null): number | null {
-  if (typeof explicit === "number") return explicit;
-  const verdicts = claims.flatMap((claim) => (claim.verdict ? [claim.verdict] : []));
-  if (verdicts.length === 0) return null;
-  return credibilityScore(verdicts, redFlags.length);
+export type ScoreRingState = "pending" | "final" | "hidden";
+
+/** The ring stays neutral until the done event publishes the final score. */
+export function scoreRingState(view: Pick<CheckView, "phase" | "score">): ScoreRingState {
+  if (view.phase === "done" && typeof view.score === "number") return "final";
+  if (view.phase === "running") return "pending";
+  return "hidden";
 }
 
 export function applyEvent(view: CheckView, event: StreamEvent, preview = view.preview): CheckView {
@@ -102,7 +103,7 @@ export function applyEvent(view: CheckView, event: StreamEvent, preview = view.p
             }
           : claim,
       );
-      return { ...view, claims, score: liveScore(claims, view.redFlags) };
+      return { ...view, claims };
     }
     case "done":
       return {
